@@ -1,10 +1,14 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @TeleOp(name = "LearnLinearOpMode")
 
@@ -18,6 +22,8 @@ public class LearningHowToMakeLinearOpMode extends LinearOpMode {
     DcMotor motor;
     Servo servo;
     CRServo servoContinuous;
+    IMU imu;
+    IMU.Parameters parameters;
 
     @Override
     public void runOpMode() {
@@ -35,12 +41,21 @@ public class LearningHowToMakeLinearOpMode extends LinearOpMode {
         servo = hardwareMap.get(Servo.class, "servo");
         servoContinuous = hardwareMap.get(CRServo.class, "servoContinuous");
 
+        //configure imu
+        imu = hardwareMap.get(IMU.class, "imu");
+        parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
+        ));
+        imu.initialize(parameters);
 
         //wait until start is pressed on the driver hub/phone
         waitForStart();
 
         //this code runs starting when start is pressed until stop is pressed
         while(opModeIsActive()){
+            //get robot heading
+            double yaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
             //tank drive
             frontLeft.setPower(gamepad1.left_stick_y);
@@ -67,11 +82,14 @@ public class LearningHowToMakeLinearOpMode extends LinearOpMode {
             }
             servoContinuous.setPower(0);
 
+            //check heading
+            if(yaw > 30 && yaw < 60){
+                telemetry.addData("Heading Status:", "In Position");
+            }else{
+                telemetry.addData("Heading Status", "Not In Position");
+            }
 
-
-
-
-
+            telemetry.update();
         }
 
     }
